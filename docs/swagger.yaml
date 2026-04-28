@@ -1,0 +1,123 @@
+basePath: /api/v1
+definitions:
+  handler.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  order.CreateOrderCmd:
+    properties:
+      amount:
+        type: number
+      user_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Microservice for order management with JWT auth, Postgres, Redis, RabbitMQ
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Order Service API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT access token
+      parameters:
+      - description: User credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: access_token, token_type, expires_in
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: invalid payload
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: invalid credentials
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: User login
+      tags:
+      - auth
+  /orders:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new order and publishes an event to RabbitMQ
+      parameters:
+      - description: Order creation payload
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/order.CreateOrderCmd'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 'status: order created & event published'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: invalid payload
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a new order
+      tags:
+      - orders
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer {token}" to authenticate
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
