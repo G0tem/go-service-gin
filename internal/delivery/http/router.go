@@ -4,8 +4,10 @@ import (
 	"time"
 
 	"github.com/G0tem/go-service-gin/internal/domain/ports"
-	handler "github.com/G0tem/go-service-gin/internal/http/handlers"
-	"github.com/G0tem/go-service-gin/internal/http/middleware"
+	handler "github.com/G0tem/go-service-gin/internal/delivery/http/handlers"
+	"github.com/G0tem/go-service-gin/internal/delivery/http/middleware"
+	app_product "github.com/G0tem/go-service-gin/internal/application/product"
+	infra_product "github.com/G0tem/go-service-gin/internal/infrastructure/postgres/product"
 	"github.com/gin-gonic/gin"
 	promclient "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -14,7 +16,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
-func NewRouter(oh *handler.OrderHandler, ah *handler.AuthHandler, tm ports.TokenManager, gatherer promclient.Gatherer) *gin.Engine {
+func NewRouter(oh *handler.OrderHandler, ah *handler.AuthHandler, tm ports.TokenManager, gatherer promclient.Gatherer, productRepo ports.ProductRepository) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery(), middleware.Timeout(10*time.Second), otelgin.Middleware("order-service"))
@@ -44,16 +46,20 @@ func NewRouter(oh *handler.OrderHandler, ah *handler.AuthHandler, tm ports.Token
 		oh.Create,
 	)
 
-	// orders.GET("",
-	// 	middleware.RequireRole("user", "admin"), // 3. Проверка роли
-	// 	oh.List,
-	// )
+	// 🛍️ Product routes (CRUD)
+	products := v1.Group("/products")
+	products.Use(middleware.JWTAuth(tm))
 
-	// orders.DELETE("/:id",
-	// 	middleware.RequireRole("admin"), // Комбинация
-	// 	middleware.RequireScope("orders:delete"),
-	// 	oh.Delete,
-	// )
+	productService := app_product.NewProductService(productRepo)
+	productHandler := handler.NewProductHandler(productService)
+
+	products.POST("", productHandler.Create)
+	products.GET("", productHandler.List)
+	products.GET("/:id", productHandler.GetByID)
+	products.PUT("/:id", productHandler.Update)
+	products.DELETE("/:id", productHandler.Delete)
+	products.POST("/:id/stock/add", productHandler.AddStock)
+	products.POST("/:id/stock/reserve", productHandler.ReserveStock)
 
 	return r
 }
