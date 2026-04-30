@@ -15,7 +15,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 
-	"github.com/G0tem/go-service-gin/internal/config"
+	"github.com/G0tem/go-service-gin/pkg/config"
 )
 
 type BusinessMetrics struct {

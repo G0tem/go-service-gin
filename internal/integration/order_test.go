@@ -14,9 +14,9 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	"github.com/G0tem/go-service-gin/internal/domain/order"
-	pginfra "github.com/G0tem/go-service-gin/internal/infra/postgres"
-	rmqinfra "github.com/G0tem/go-service-gin/internal/infra/rabbitmq"
-	usecase "github.com/G0tem/go-service-gin/internal/usecases"
+	pginfra "github.com/G0tem/go-service-gin/internal/infrastructure/postgres"
+	rmqinfra "github.com/G0tem/go-service-gin/internal/infrastructure/rabbitmq"
+	application "github.com/G0tem/go-service-gin/internal/application"
 )
 
 func TestCreateOrderIntegration(t *testing.T) {
@@ -100,7 +100,7 @@ func TestCreateOrderIntegration(t *testing.T) {
 	require.NoError(t, err)
 
 	// ⚙️ UseCase (metrics = nil ok for test)
-	uc := usecase.NewCreateOrderHandler(
+	uc := application.NewCreateOrderHandler(
 		pginfra.NewOrderRepo(pool),
 		rmqClient, // ← instrumented client for publishing
 		nil,

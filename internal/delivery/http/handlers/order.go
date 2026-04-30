@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/G0tem/go-service-gin/internal/domain/order"
-	"github.com/G0tem/go-service-gin/internal/http/middleware"
-	usecase "github.com/G0tem/go-service-gin/internal/usecases"
+	"github.com/G0tem/go-service-gin/internal/delivery/http/middleware"
+	usecase "github.com/G0tem/go-service-gin/internal/application"
 	"github.com/gin-gonic/gin"
 )
 

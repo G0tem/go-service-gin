@@ -15,7 +15,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.34.0"
 
-	"github.com/G0tem/go-service-gin/internal/config"
+	"github.com/G0tem/go-service-gin/pkg/config"
 )
 
 // InitTracing инициализирует трейсинг на основе конфига

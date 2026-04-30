@@ -24,6 +24,8 @@ type OTelMetricConfig struct {
 	Interval  time.Duration `env:"OTEL_METRIC_INTERVAL, default=15s"`
 }
 
+// Config — основная структура конфигурации сервиса.
+// Используется для загрузки настроек из переменных окружения.
 type Config struct {
 	// HTTP
 	HTTPAddr     string        `env:"HTTP_ADDR, default=:8080"`

@@ -10,14 +10,15 @@ import (
 	"time"
 
 	_ "github.com/G0tem/go-service-gin/docs"
-	"github.com/G0tem/go-service-gin/internal/config"
-	http_router "github.com/G0tem/go-service-gin/internal/http"
-	handler "github.com/G0tem/go-service-gin/internal/http/handlers"
-	"github.com/G0tem/go-service-gin/internal/infra/jwt"
-	"github.com/G0tem/go-service-gin/internal/infra/postgres"
-	"github.com/G0tem/go-service-gin/internal/infra/rabbitmq"
+	"github.com/G0tem/go-service-gin/internal/application"
+	http_router "github.com/G0tem/go-service-gin/internal/delivery/http"
+	handler "github.com/G0tem/go-service-gin/internal/delivery/http/handlers"
+	"github.com/G0tem/go-service-gin/internal/infrastructure/jwt"
+	"github.com/G0tem/go-service-gin/internal/infrastructure/postgres"
+	infra_product "github.com/G0tem/go-service-gin/internal/infrastructure/postgres/product"
+	"github.com/G0tem/go-service-gin/internal/infrastructure/rabbitmq"
 	"github.com/G0tem/go-service-gin/internal/otel"
-	usecase "github.com/G0tem/go-service-gin/internal/usecases"
+	"github.com/G0tem/go-service-gin/pkg/config"
 )
 
 // @title Order Service API
@@ -76,12 +77,13 @@ func main() {
 
 	// Domain & UseCases
 	orderRepo := postgres.NewOrderRepo(pool)
+	productRepo := infra_product.NewProductRepo(pool)
 	tm := jwt.NewManager(cfg.JWTSecret, cfg.AccessTokenTTL)
 	authHandler := handler.NewAuthHandler(tm)
-	createOrderUC := usecase.NewCreateOrderHandler(orderRepo, rmq, metrics)
+	createOrderUC := application.NewCreateOrderHandler(orderRepo, rmq, metrics)
 	orderHandler := handler.NewOrderHandler(createOrderUC)
 
-	router := http_router.NewRouter(orderHandler, authHandler, tm, gatherer)
+	router := http_router.NewRouter(orderHandler, authHandler, tm, gatherer, productRepo)
 
 	srv := &http.Server{
 		Addr:         cfg.HTTPAddr,
